@@ -31,24 +31,22 @@
       <div class="grid gap-4 sm:grid-cols-2">
         <div>
           <label for="sprint-start" class="mb-1 block text-sm font-medium text-slate-700">
-            Start date
+            Start date <span class="text-slate-400">(Shamsi)</span>
           </label>
-          <input
-            id="sprint-start"
-            type="date"
+          <app-persian-date-input
             formControlName="startDate"
-            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            inputId="sprint-start"
+            placeholder="انتخاب تاریخ شروع"
           />
         </div>
         <div>
           <label for="sprint-end" class="mb-1 block text-sm font-medium text-slate-700">
-            End date
+            End date <span class="text-slate-400">(Shamsi)</span>
           </label>
-          <input
-            id="sprint-end"
-            type="date"
+          <app-persian-date-input
             formControlName="endDate"
-            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            inputId="sprint-end"
+            placeholder="انتخاب تاریخ پایان"
           />
         </div>
       </div>

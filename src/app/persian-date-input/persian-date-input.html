@@ -1,0 +1,21 @@
+<div class="persian-date-field">
+  <ng-persian-datepicker
+    [dateInitValue]="false"
+    dateFormat="YYYY/MM/DD"
+    [uiTheme]="pickerTheme"
+    [uiHideAfterSelectDate]="true"
+    [uiTodayBtnEnable]="true"
+    (dateOnSelect)="onDateSelect($event)"
+    (dateOnInit)="onDateInit($event)"
+  >
+    <input
+      [id]="inputId"
+      type="text"
+      [formControl]="displayControl"
+      [placeholder]="placeholder"
+      class="persian-date-input"
+      readonly
+      dir="rtl"
+    />
+  </ng-persian-datepicker>
+</div>

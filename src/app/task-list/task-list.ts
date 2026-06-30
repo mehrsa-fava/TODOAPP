@@ -8,6 +8,7 @@ import { SprintService } from '../services/sprint-service';
 import { ProjectService } from '../services/project-service';
 import type { Task, TaskStatus, TaskPriority } from '../model/task';
 import { TASK_STATUS_OPTIONS, TASK_PRIORITY_OPTIONS } from '../model/task';
+import { formatGregorianAsShamsi } from '../utils/jalali-date.util';
 
 export type TaskListFilter = 'all' | 'active' | 'completed';
 
@@ -84,7 +85,7 @@ export class TaskList implements OnInit {
     const sprint = this.activeSprint();
     if (!sprint) return 'Tasks not assigned to a sprint.';
     if (sprint.startDate && sprint.endDate) {
-      return `${sprint.startDate} → ${sprint.endDate}`;
+      return `${formatGregorianAsShamsi(sprint.startDate)} → ${formatGregorianAsShamsi(sprint.endDate)}`;
     }
     return 'Tasks in this sprint.';
   });

@@ -3,11 +3,12 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { SprintService } from '../services/sprint-service';
 import { ProjectService } from '../services/project-service';
+import { PersianDateInputComponent } from '../persian-date-input/persian-date-input';
 
 @Component({
   selector: 'app-sprint-form',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule],
+  imports: [RouterLink, ReactiveFormsModule, PersianDateInputComponent],
   templateUrl: './sprint-form.html',
 })
 export class SprintForm implements OnInit {

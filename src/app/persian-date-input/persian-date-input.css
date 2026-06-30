@@ -1,0 +1,32 @@
+.persian-date-field {
+  position: relative;
+}
+
+.persian-date-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid #cbd5e1;
+  padding: 0.75rem 1rem;
+  color: #0f172a;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  transition: border-color 150ms, box-shadow 150ms;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.persian-date-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+.persian-date-input:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+:host ::ng-deep ng-persian-datepicker .datepicker-outer-container {
+  z-index: 40;
+}
