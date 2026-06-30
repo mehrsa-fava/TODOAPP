@@ -1,36 +1,32 @@
-<div class="min-h-screen bg-slate-50 text-slate-900">
-  <div class="mx-auto max-w-2xl px-4 py-10">
-    <!-- Header -->
-    <header class="mb-10">
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 class="text-3xl font-bold tracking-tight text-slate-800">Tasks</h1>
-          <p class="mt-1 text-slate-500">Manage tasks for this project.</p>
-        </div>
-        <app-profile-menu />
+<div class="task-panel">
+  <div class="task-panel-inner">
+    <header class="task-panel-header">
+      <div>
+        @if (projectTitle()) {
+          <p class="task-panel-breadcrumb">{{ projectTitle() }}</p>
+        }
+        <h1 class="task-panel-title">{{ viewTitle() }}</h1>
+        <p class="task-panel-subtitle">{{ viewSubtitle() }}</p>
       </div>
+      @if (activeSprint() && projectId() !== null) {
+        <a
+          [routerLink]="['/sprint/form', activeSprint()!.id]"
+          [queryParams]="{ projectId: projectId()! }"
+          class="task-panel-edit-sprint"
+        >
+          Edit sprint
+        </a>
+      }
     </header>
 
-    <!-- Nav + add task -->
-    <div class="mb-6 flex flex-wrap gap-3">
-      <a
-        routerLink="/project/list"
-        class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-      >
-        ← Projects
-      </a>
+    <div class="task-panel-actions">
       <a
         [routerLink]="['/task/form']"
-        [queryParams]="projectId() !== null ? { projectId: projectId()! } : {}"
-        class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        [queryParams]="addTaskQueryParams()"
+        class="btn-primary"
       >
         <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4"
-          />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
         Add task
       </a>
@@ -356,7 +352,11 @@
         <li
           class="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-8 text-center text-slate-500"
         >
-          No tasks yet. Add one above.
+          @if (sprintFilter() === 'backlog') {
+            No backlog tasks yet. Add one above.
+          } @else {
+            No tasks in this sprint yet.
+          }
         </li>
       }
     </ul>

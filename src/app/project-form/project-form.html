@@ -116,7 +116,7 @@
         <p class="text-sm text-red-600">{{ error }}</p>
       }
 
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-3">
         <button
           type="submit"
           class="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -129,6 +129,15 @@
         >
           Cancel
         </a>
+        @if (isEditMode()) {
+          <button
+            type="button"
+            (click)="deleteProject()"
+            class="rounded-xl border border-red-200 bg-white px-5 py-2.5 text-sm font-medium text-red-600 shadow-sm transition hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Delete project
+          </button>
+        }
       </div>
     </form>
   </div>

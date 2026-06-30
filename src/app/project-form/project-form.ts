@@ -141,7 +141,26 @@ export class ProjectForm implements OnInit {
 
   backLink(): string {
     return this.isEditMode() && this.projectNumericId !== null
-      ? `/task/list/${this.projectNumericId}`
+      ? `/project/${this.projectNumericId}/backlog`
       : '/project/list';
+  }
+
+  deleteProject(): void {
+    if (this.projectNumericId === null || this.submitting) return;
+    if (!confirm('Delete this project? This cannot be undone.')) return;
+
+    this.submitting = true;
+    const id = this.projectNumericId;
+    this.projectService.deleteProject(id).subscribe({
+      next: (ok) => {
+        this.submitting = false;
+        if (ok) this.router.navigate(['/project/list']);
+        else this.error = 'Could not delete project. Try again.';
+      },
+      error: () => {
+        this.submitting = false;
+        this.error = 'Could not delete project. Try again.';
+      },
+    });
   }
 }

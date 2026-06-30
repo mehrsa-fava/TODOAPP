@@ -96,6 +96,9 @@ export function apiToTask(api: TaskApiResponse): Task {
   const projectIdRaw = api.ProjectId ?? raw['projectId'];
   const projectId =
     projectIdRaw === undefined || projectIdRaw === null ? undefined : Number(projectIdRaw);
+  const sprintIdRaw = api.SprintId ?? raw['sprintId'];
+  const sprintId =
+    sprintIdRaw === undefined || sprintIdRaw === null ? null : Number(sprintIdRaw);
   const createdAt = api.CreatedAt ?? raw['createdAt'];
   const updatedAt = api.UpdatedAt ?? raw['updatedAt'];
   return {
@@ -108,6 +111,7 @@ export function apiToTask(api: TaskApiResponse): Task {
       ? normalizeUsers(users as unknown as Record<string, unknown>[])
       : [],
     ...(projectId !== undefined && !Number.isNaN(projectId) ? { projectId } : {}),
+    sprintId: sprintId !== null && !Number.isNaN(sprintId) ? sprintId : null,
     createdAt: createdAt ? new Date(createdAt as string).getTime() : now,
     updatedAt: updatedAt ? new Date(updatedAt as string).getTime() : now,
   };
@@ -131,6 +135,7 @@ export function toCreateDto(params: AddTaskInput, title: string): CreateTaskDto 
     Priority: priorityToApi(params.priority ?? 'Medium'),
     Status: statusToApi(params.status ?? 'Open'),
     ProjectId: params.projectId,
+    SprintId: params.sprintId ?? null,
     UserIds: (params.userIds ?? []).filter((uid) => uid?.trim()),
   };
 }
@@ -139,10 +144,12 @@ export function toUpdateDto(
   id: number,
   input: UpdateTaskInput,
   existing:
-    | Pick<Task, 'title' | 'description' | 'priority' | 'status' | 'users' | 'projectId'>
+    | Pick<Task, 'title' | 'description' | 'priority' | 'status' | 'users' | 'projectId' | 'sprintId'>
     | undefined,
 ): UpdateTaskDto {
   const rawUserIds = input.userIds ?? (existing?.users ?? []).map((u) => u.id);
+  const sprintId =
+    input.sprintId !== undefined ? input.sprintId : (existing?.sprintId ?? null);
   return {
     Id: id,
     Title: (input.title ?? existing?.title ?? '').trim(),
@@ -150,6 +157,7 @@ export function toUpdateDto(
     Priority: priorityToApi(input.priority ?? existing?.priority ?? 'Medium'),
     Status: statusToApi(input.status ?? existing?.status ?? 'Open'),
     ProjectId: input.projectId ?? existing?.projectId ?? 0,
+    SprintId: sprintId,
     UserIds: rawUserIds.filter((uid) => uid?.trim()),
   };
 }

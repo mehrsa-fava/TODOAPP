@@ -1,12 +1,11 @@
 import { Component, computed, signal, OnInit, HostListener } from '@angular/core';
 import { NgClass } from '@angular/common';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TaskService } from '../services/task-service';
 import { TaskUserService } from '../services/task-user-service';
-import { AuthService } from '../services/auth-service';
-import { formatShortDate } from '../utils/date.util';
-import { ProfileMenu } from '../profile-menu/profile-menu';
+import { SprintService } from '../services/sprint-service';
+import { ProjectService } from '../services/project-service';
 import type { Task, TaskStatus, TaskPriority } from '../model/task';
 import { TASK_STATUS_OPTIONS, TASK_PRIORITY_OPTIONS } from '../model/task';
 
@@ -22,7 +21,7 @@ export type EditingField = 'title' | 'description' | 'status' | 'priority' | 'us
 
 @Component({
   selector: 'app-task-list',
-  imports: [RouterLink, FormsModule, ProfileMenu, NgClass],
+  imports: [RouterLink, FormsModule, NgClass],
   templateUrl: './task-list.html',
   styleUrl: './task-list.css',
 })
@@ -30,12 +29,14 @@ export class TaskList implements OnInit {
   private readonly filterSignal = signal<TaskListFilter>('all');
 
   readonly projectId = signal<number | null>(null);
+  /** 'backlog' = sprintId is null; number = specific sprint */
+  readonly sprintFilter = signal<'backlog' | number>('backlog');
 
   constructor(
     protected taskService: TaskService,
     protected taskUserService: TaskUserService,
-    private readonly authService: AuthService,
-    private readonly router: Router,
+    protected sprintService: SprintService,
+    protected projectService: ProjectService,
     private readonly route: ActivatedRoute,
   ) {}
 
@@ -44,19 +45,67 @@ export class TaskList implements OnInit {
   readonly filteredTasks = computed(() => {
     const tasks = this.taskService.tasks();
     const f = this.filterSignal();
-    if (f === 'active') return tasks.filter((t) => t.status !== 'Done');
-    if (f === 'completed') return tasks.filter((t) => t.status === 'Done');
+    const sprintFilter = this.sprintFilter();
 
-    return tasks;
+    let scoped =
+      sprintFilter === 'backlog'
+        ? tasks.filter((t) => t.sprintId == null)
+        : tasks.filter((t) => t.sprintId === sprintFilter);
+
+    if (f === 'active') return scoped.filter((t) => t.status !== 'Done');
+    if (f === 'completed') return scoped.filter((t) => t.status === 'Done');
+
+    return scoped;
+  });
+
+  readonly viewTitle = computed(() => {
+    const sprintFilter = this.sprintFilter();
+    if (sprintFilter === 'backlog') return 'Backlogs';
+    const pid = this.projectId();
+    if (pid === null) return 'Sprint';
+    const sprint = this.sprintService.sprintsForProject(pid).find((s) => s.id === sprintFilter);
+    return sprint?.title ?? 'Sprint';
+  });
+
+  readonly projectTitle = computed(() => {
+    const pid = this.projectId();
+    if (pid === null) return '';
+    return this.projectService.projects().find((p) => p.id === pid)?.title ?? '';
+  });
+
+  readonly activeSprint = computed(() => {
+    const sprintFilter = this.sprintFilter();
+    const pid = this.projectId();
+    if (sprintFilter === 'backlog' || pid === null) return null;
+    return this.sprintService.sprintsForProject(pid).find((s) => s.id === sprintFilter) ?? null;
+  });
+
+  readonly viewSubtitle = computed(() => {
+    const sprint = this.activeSprint();
+    if (!sprint) return 'Tasks not assigned to a sprint.';
+    if (sprint.startDate && sprint.endDate) {
+      return `${sprint.startDate} → ${sprint.endDate}`;
+    }
+    return 'Tasks in this sprint.';
   });
 
   ngOnInit(): void {
+    this.projectService.loadProjects().subscribe();
     this.route.paramMap.subscribe((pm) => {
-      const raw = pm.get('projectId');
-      const n = raw ? parseInt(raw, 10) : NaN;
-      if (!Number.isNaN(n)) {
-        this.projectId.set(n);
-        this.taskService.loadTasksByProjectId(n).subscribe();
+      const rawProject = pm.get('projectId');
+      const rawSprint = pm.get('sprintId');
+      const projectId = rawProject ? parseInt(rawProject, 10) : NaN;
+
+      if (!Number.isNaN(projectId)) {
+        this.projectId.set(projectId);
+        if (rawSprint) {
+          const sprintId = parseInt(rawSprint, 10);
+          this.sprintFilter.set(Number.isNaN(sprintId) ? 'backlog' : sprintId);
+          this.sprintService.loadSprints(projectId).subscribe();
+        } else {
+          this.sprintFilter.set('backlog');
+        }
+        this.taskService.loadTasksByProjectId(projectId).subscribe();
       } else {
         this.projectId.set(null);
       }
@@ -69,9 +118,12 @@ export class TaskList implements OnInit {
     if (pid !== null) this.taskService.loadTasksByProjectId(pid).subscribe();
   }
 
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
+  addTaskQueryParams(): { projectId: number; sprintId?: number } | Record<string, never> {
+    const pid = this.projectId();
+    if (pid === null) return {};
+    const sf = this.sprintFilter();
+    if (sf === 'backlog') return { projectId: pid };
+    return { projectId: pid, sprintId: sf };
   }
 
   setFilter(value: TaskListFilter | string): void {

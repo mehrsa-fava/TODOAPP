@@ -29,6 +29,7 @@ export interface Task {
   updatedAt: number;
   users: TaskUser[];
   projectId?: number;
+  sprintId?: number | null;
 }
 
 export type AddTaskInput = {
@@ -40,6 +41,7 @@ export type AddTaskInput = {
   status?: TaskStatus;
   userIds?: string[];
   projectId: number;
+  sprintId?: number | null;
 };
 
 export type UpdateTaskInput = {
@@ -51,6 +53,7 @@ export type UpdateTaskInput = {
   status?: TaskStatus;
   userIds?: string[];
   projectId?: number;
+  sprintId?: number | null;
 };
 
 /** Options for status and priority selects (shared by form and list). */

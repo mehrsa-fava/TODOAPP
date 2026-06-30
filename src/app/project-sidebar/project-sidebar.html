@@ -1,0 +1,223 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h2 class="sidebar-title">Projects</h2>
+    <div class="sidebar-header-actions">
+      <a routerLink="/project/form" class="icon-btn" title="New project" aria-label="New project">
+        <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+      </a>
+      <app-profile-menu />
+    </div>
+  </div>
+
+  @if (projectService.loading()) {
+    <p class="sidebar-status">Loading projects...</p>
+  }
+  @if (projectService.error()) {
+    <p class="sidebar-error">{{ projectService.error() }}</p>
+  }
+
+  <nav class="project-tree" aria-label="Project navigation">
+    @for (project of projects(); track project.id) {
+      <div class="project-block">
+        <div
+          class="project-row"
+          [class.project-row--active]="hoveredProjectId() === project.id"
+          (mouseenter)="hoveredProjectId.set(project.id)"
+          (mouseleave)="hoveredProjectId.set(null)"
+        >
+          <button
+            type="button"
+            class="project-main"
+            (click)="onProjectRowClick(project)"
+          >
+            <span
+              class="project-icon"
+              [ngClass]="[iconStyle(project).bg, iconStyle(project).text]"
+            >
+              {{ iconStyle(project).letter }}
+            </span>
+            <span class="project-name">{{ project.title }}</span>
+            <svg class="lock-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path
+                d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V12a2 2 0 00-2-2h-1V7a5 5 0 00-5-5zm-3 8V7a3 3 0 016 0v3H9z"
+              />
+            </svg>
+          </button>
+
+          @if (hoveredProjectId() === project.id) {
+            <div class="project-actions">
+              <a
+                [routerLink]="['/project/form', project.id]"
+                class="icon-btn icon-btn--ghost"
+                title="Edit project"
+                (click)="$event.stopPropagation()"
+              >
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
+                </svg>
+              </a>
+              <button
+                type="button"
+                class="icon-btn icon-btn--ghost icon-btn--danger"
+                title="Delete project"
+                (click)="deleteProject(project, $event)"
+              >
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+              <a
+                routerLink="/project/form"
+                class="icon-btn icon-btn--ghost"
+                title="Add project"
+                (click)="$event.stopPropagation()"
+              >
+                <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </a>
+            </div>
+          }
+        </div>
+
+        @if (isProjectExpanded(project.id)) {
+          <div class="tree-children">
+            <a
+              [routerLink]="['/project', project.id, 'backlog']"
+              routerLinkActive="tree-item--active"
+              class="tree-item"
+            >
+              <svg class="folder-icon folder-icon--backlog" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.75"
+                  d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
+                />
+              </svg>
+              <span>Backlogs</span>
+            </a>
+
+            <div class="sprints-group">
+              <div class="sprints-folder-row">
+                <button
+                  type="button"
+                  class="tree-item tree-item--button sprints-folder-btn"
+                  (click)="toggleSprintsFolder(project.id, $event)"
+                >
+                  <svg class="folder-icon folder-icon--sprints" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
+                    />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 11v4m0-2h.01" />
+                  </svg>
+                  <span>Sprints</span>
+                  <svg
+                    class="chevron"
+                    [class.chevron--open]="isSprintsFolderExpanded(project.id)"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <a
+                  [routerLink]="['/sprint/form']"
+                  [queryParams]="{ projectId: project.id }"
+                  class="icon-btn icon-btn--ghost sprint-add-btn"
+                  title="New sprint"
+                  (click)="$event.stopPropagation()"
+                >
+                  <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                </a>
+              </div>
+
+              @if (isSprintsFolderExpanded(project.id)) {
+                <div class="sprint-children">
+                  @if (sprintService.isLoading(project.id)) {
+                    <p class="sidebar-status sidebar-status--nested">Loading sprints...</p>
+                  } @else if (sprintsFor(project.id).length === 0) {
+                    <p class="sidebar-status sidebar-status--nested">No sprints</p>
+                  } @else {
+                    @for (sprint of sprintsFor(project.id); track sprint.id) {
+                      <div
+                        class="sprint-row"
+                        (mouseenter)="hoveredSprintKey.set(sprintRowKey(project.id, sprint.id))"
+                        (mouseleave)="hoveredSprintKey.set(null)"
+                      >
+                        <a
+                          [routerLink]="['/project', project.id, 'sprint', sprint.id]"
+                          routerLinkActive="tree-item--active"
+                          class="tree-item tree-item--sprint"
+                        >
+                          <span class="sprint-dot"></span>
+                          <span class="sprint-title">{{ sprint.title }}</span>
+                        </a>
+                        @if (hoveredSprintKey() === sprintRowKey(project.id, sprint.id)) {
+                          <div class="sprint-actions">
+                            <a
+                              [routerLink]="['/sprint/form', sprint.id]"
+                              [queryParams]="{ projectId: project.id }"
+                              class="icon-btn icon-btn--ghost"
+                              title="Edit sprint"
+                            >
+                              <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                            </a>
+                            <button
+                              type="button"
+                              class="icon-btn icon-btn--ghost icon-btn--danger"
+                              title="Delete sprint"
+                              (click)="deleteSprint(project.id, sprint.id, sprint.title, $event)"
+                            >
+                              <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @empty {
+      @if (!projectService.loading()) {
+        <p class="sidebar-status">No projects yet.</p>
+      }
+    }
+  </nav>
+</aside>

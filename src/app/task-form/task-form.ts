@@ -30,6 +30,7 @@ export class TaskForm implements OnInit {
 
   readonly isEditMode = signal(false);
   private taskId: string | null = null;
+  private sprintId: number | null = null;
 
   readonly statusOptions = TASK_STATUS_OPTIONS;
   readonly priorityOptions = TASK_PRIORITY_OPTIONS;
@@ -62,7 +63,16 @@ export class TaskForm implements OnInit {
       if (!Number.isNaN(n)) {
         this.taskForm.patchValue({ projectId: n });
       }
+      this.sprintId = this.parseSprintIdFromQuery(
+        this.route.snapshot.queryParamMap.get('sprintId'),
+      );
     }
+  }
+
+  private parseSprintIdFromQuery(raw: string | null): number | null {
+    if (raw === null || raw === '' || raw === 'null') return null;
+    const n = parseInt(raw, 10);
+    return Number.isNaN(n) ? null : n;
   }
 
   toggleUser(userId: string): void {
@@ -108,6 +118,7 @@ export class TaskForm implements OnInit {
   private applyTask(task: Task, id: string): void {
     this.taskId = id;
     this.isEditMode.set(true);
+    this.sprintId = task.sprintId ?? null;
 
     this.taskForm.patchValue({
       title: task.title,
@@ -165,6 +176,7 @@ export class TaskForm implements OnInit {
       priority: formValue.priority,
       status: formValue.status,
       projectId,
+      sprintId: this.sprintId,
       userIds: Array.from(this.selectedUserIds()).filter((uid) => uid?.trim()),
     };
 
@@ -172,7 +184,7 @@ export class TaskForm implements OnInit {
       this.taskService.updateTask(this.taskId, payload).subscribe({
         next: (ok) => {
           this.submitting = false;
-          if (ok) this.router.navigate(['/task/list', projectId]);
+          if (ok) this.navigateAfterSave(projectId, this.sprintId);
           else this.error = 'Could not update task. Try again.';
         },
         error: () => {
@@ -186,7 +198,7 @@ export class TaskForm implements OnInit {
           this.submitting = false;
           if (task) {
             this.resetForm();
-            this.router.navigate(['/task/list', projectId]);
+            this.navigateAfterSave(projectId, this.sprintId);
           } else {
             this.error = 'Could not add task. Try again.';
           }
@@ -235,7 +247,18 @@ export class TaskForm implements OnInit {
 
   taskListBackLink(): string {
     const id = this.taskForm.getRawValue().projectId as number | null;
-    if (id !== null && !Number.isNaN(Number(id))) return `/task/list/${id}`;
+    if (id !== null && !Number.isNaN(Number(id))) {
+      if (this.sprintId != null) return `/project/${id}/sprint/${this.sprintId}`;
+      return `/project/${id}/backlog`;
+    }
     return '/project/list';
+  }
+
+  private navigateAfterSave(projectId: number, sprintId: number | null): void {
+    if (sprintId != null) {
+      this.router.navigate(['/project', projectId, 'sprint', sprintId]);
+    } else {
+      this.router.navigate(['/project', projectId, 'backlog']);
+    }
   }
 }
