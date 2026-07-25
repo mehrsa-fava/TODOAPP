@@ -1,0 +1,13 @@
+HostListener : 
+این 
+Decorator 
+برای گوش دادن به 
+Event
+ها استفاده می‌شود.
+مثلاً
+
+click
+scroll
+keydown
+mousemove
+

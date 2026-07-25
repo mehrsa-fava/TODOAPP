@@ -1,15 +1,20 @@
 import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
+//Router: مسئول جابه‌جایی بین صفحات است
 import { AuthService } from '../services/auth-service';
+//این همان سرویسی است که اطلاعات کاربر را نگهداری می‌کند.
 
 @Component({
   selector: 'app-profile-menu',
+  //یعنی هر جا بنویسیم app-profile-menu به این کامپوننت اشاره می‌کند(<app-profile-menu></app-profile-menu>)
   standalone: true,
   templateUrl: './profile-menu.html',
   styleUrl: './profile-menu.css',
 })
+
+//این کلاس منطق کامپوننت را نگهداری می‌کند.
 export class ProfileMenu {
-  readonly currentUser;
+  readonly currentUser; //تعریف متغیر
   isOpen = false;
 
   constructor(
@@ -45,3 +50,5 @@ export class ProfileMenu {
     }
   }
 }
+
+//سیگنال یک متغیر هوشمند است که انگولار تغییرات آن را خودش متوجه می‌شود و فقط قسمت‌های لازم از صفحه را دوباره رندر می‌کند.
