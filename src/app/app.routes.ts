@@ -53,11 +53,10 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: 'task/list', redirectTo: 'project/list', pathMatch: 'full', canActivate: [authGuard] },
+  { path: 'task/list', redirectTo: 'project/list', pathMatch: 'full' },
   {
     path: 'task/list/:projectId',
     redirectTo: 'project/:projectId/backlog',
     pathMatch: 'full',
-    canActivate: [authGuard],
   },
 ];
