@@ -77,7 +77,9 @@ export class ProjectSidebar implements OnInit {
     if (url.includes('/sprint/') || url.includes('/sprint/form')) {
       this.expandedSprintsFolders.update((set) => new Set(set).add(projectId));
       if (!this.sprintService.sprintsForProject(projectId).length) {
-        this.sprintService.loadSprints(projectId).subscribe(() => this.ensureProjectTasksLoaded(projectId));
+        this.sprintService
+          .loadSprints(projectId)
+          .subscribe(() => this.ensureProjectTasksLoaded(projectId));
       } else {
         this.ensureProjectTasksLoaded(projectId);
       }
@@ -127,8 +129,13 @@ export class ProjectSidebar implements OnInit {
     }
 
     this.expandedProjects.update((set) => new Set(set).add(projectId));
-    if (!this.sprintService.sprintsForProject(projectId).length && !this.sprintService.isLoading(projectId)) {
-      this.sprintService.loadSprints(projectId).subscribe(() => this.ensureProjectTasksLoaded(projectId));
+    if (
+      !this.sprintService.sprintsForProject(projectId).length &&
+      !this.sprintService.isLoading(projectId)
+    ) {
+      this.sprintService
+        .loadSprints(projectId)
+        .subscribe(() => this.ensureProjectTasksLoaded(projectId));
     } else {
       this.ensureProjectTasksLoaded(projectId);
     }
@@ -183,8 +190,13 @@ export class ProjectSidebar implements OnInit {
   }
 
   private ensureSprintsLoaded(projectId: number): void {
-    if (!this.sprintService.sprintsForProject(projectId).length && !this.sprintService.isLoading(projectId)) {
-      this.sprintService.loadSprints(projectId).subscribe(() => this.ensureProjectTasksLoaded(projectId));
+    if (
+      !this.sprintService.sprintsForProject(projectId).length &&
+      !this.sprintService.isLoading(projectId)
+    ) {
+      this.sprintService
+        .loadSprints(projectId)
+        .subscribe(() => this.ensureProjectTasksLoaded(projectId));
       return;
     }
     this.ensureProjectTasksLoaded(projectId);
@@ -217,5 +229,24 @@ export class ProjectSidebar implements OnInit {
         this.router.navigate(['/project/list']);
       }
     });
+  }
+
+  getSprintProgress(startAt: string | Date, endAt: string | Date): number {
+    const start = new Date(startAt);
+    const end = new Date(endAt);
+    const now = new Date();
+
+    // Normalize to midnight so hours don't affect the calculation
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    const passedDays = Math.ceil((now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    const progress = (passedDays / totalDays) * 100;
+
+    return Math.min(100, Math.max(0, progress));
   }
 }

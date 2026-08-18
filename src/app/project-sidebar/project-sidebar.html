@@ -4,7 +4,12 @@
     <div class="sidebar-header-actions">
       <a routerLink="/project/form" class="icon-btn" title="New project" aria-label="New project">
         <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
       </a>
       <app-profile-menu />
@@ -27,15 +32,8 @@
           (mouseenter)="hoveredProjectId.set(project.id)"
           (mouseleave)="hoveredProjectId.set(null)"
         >
-          <button
-            type="button"
-            class="project-main"
-            (click)="onProjectRowClick(project)"
-          >
-            <span
-              class="project-icon"
-              [ngClass]="[iconStyle(project).bg, iconStyle(project).text]"
-            >
+          <button type="button" class="project-main" (click)="onProjectRowClick(project)">
+            <span class="project-icon" [ngClass]="[iconStyle(project).bg, iconStyle(project).text]">
               {{ iconStyle(project).letter }}
             </span>
             <span class="project-name">{{ project.title }}</span>
@@ -85,7 +83,12 @@
                 (click)="$event.stopPropagation()"
               >
                 <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                  />
                 </svg>
               </a>
             </div>
@@ -99,7 +102,12 @@
               routerLinkActive="tree-item--active"
               class="tree-item"
             >
-              <svg class="folder-icon folder-icon--backlog" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <svg
+                class="folder-icon folder-icon--backlog"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -117,14 +125,24 @@
                   class="tree-item tree-item--button sprints-folder-btn"
                   (click)="toggleSprintsFolder(project.id, $event)"
                 >
-                  <svg class="folder-icon folder-icon--sprints" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <svg
+                    class="folder-icon folder-icon--sprints"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
                     <path
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       stroke-width="1.75"
                       d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"
                     />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 11v4m0-2h.01" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.75"
+                      d="M12 11v4m0-2h.01"
+                    />
                   </svg>
                   <span>Sprints</span>
                   <svg
@@ -134,7 +152,12 @@
                     fill="none"
                     stroke="currentColor"
                   >
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </button>
                 <a
@@ -145,7 +168,12 @@
                   (click)="$event.stopPropagation()"
                 >
                   <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 4v16m8-8H4"
+                    />
                   </svg>
                 </a>
               </div>
@@ -160,8 +188,19 @@
                       [queryParams]="{ projectId: project.id }"
                       class="create-sprint-btn create-sprint-btn--solo"
                     >
-                      <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      <svg
+                        class="size-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                       Create Sprint
                     </a>
@@ -185,6 +224,9 @@
                             [class.sprint-status-icon--completed]="status === 'completed'"
                             [class.sprint-status-icon--in-progress]="status === 'in-progress'"
                             [class.sprint-status-icon--not-started]="status === 'not-started'"
+                            [style.--progress]="
+                              getSprintProgress(sprint.startDate, sprint.endDate) + '%'
+                            "
                             aria-hidden="true"
                           >
                             <svg viewBox="0 0 16 16" fill="currentColor">
@@ -193,7 +235,10 @@
                           </span>
                           <span class="sprint-title">{{ sprintLabel(sprint) }}</span>
                           @if (badge !== null) {
-                            <span class="sprint-task-badge" [attr.aria-label]="badge + ' open tasks'">
+                            <span
+                              class="sprint-task-badge"
+                              [attr.aria-label]="badge + ' open tasks'"
+                            >
                               {{ badge }}
                             </span>
                           }
@@ -206,7 +251,12 @@
                               class="icon-btn icon-btn--ghost"
                               title="Edit sprint"
                             >
-                              <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                class="size-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path
                                   stroke-linecap="round"
                                   stroke-linejoin="round"
@@ -221,7 +271,12 @@
                               title="Delete sprint"
                               (click)="deleteSprint(project.id, sprint.id, sprint.title, $event)"
                             >
-                              <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                class="size-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path
                                   stroke-linecap="round"
                                   stroke-linejoin="round"
@@ -239,8 +294,19 @@
                       [queryParams]="{ projectId: project.id }"
                       class="create-sprint-btn"
                     >
-                      <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      <svg
+                        class="size-3.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                       Create Sprint
                     </a>

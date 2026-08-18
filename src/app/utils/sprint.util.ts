@@ -37,6 +37,7 @@ export function formatSprintDateRange(
 ): string {
   const start = formatGregorianAsShamsiCompact(startDate);
   const end = formatGregorianAsShamsiCompact(endDate);
+
   if (!start && !end) return '';
   if (start && end) return `${start} - ${end}`;
   return start || end;

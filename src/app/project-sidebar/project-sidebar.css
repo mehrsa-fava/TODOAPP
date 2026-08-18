@@ -293,36 +293,63 @@
 }
 
 .sprint-status-icon {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1rem;
-  height: 1rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border-radius: 9999px;
   flex-shrink: 0;
   color: #fff;
 }
 
 .sprint-status-icon svg {
-  width: 0.55rem;
-  height: 0.55rem;
+  width: 20px;
+  height: 20px;
+  position: relative;
+  z-index: 2;
 }
 
+/* Completed */
 .sprint-status-icon--completed {
   background: transparent;
-  border: 1.5px solid #16a34a;
+  border: 3px solid #16a34a;
   color: #16a34a;
 }
 
+/* In progress */
 .sprint-status-icon--in-progress {
   background: transparent;
-  border: 1.5px solid #0070f7;
   color: #0070f7;
 }
 
+/* The progress ring */
+.sprint-status-icon--in-progress::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+
+  border-radius: 50%;
+
+  background: conic-gradient(from -90deg, #0070f7 0 var(--progress), #cbd5e1 var(--progress) 100%);
+
+  /* Make only the outer part visible */
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 3px),
+    #000 calc(100% - 2.7px)
+  );
+
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.7px));
+
+  z-index: 1;
+}
+
+/* Not started */
 .sprint-status-icon--not-started {
   background: transparent;
-  border: 1.5px dashed #cbd5e1;
+  border: 3px dashed #cbd5e1;
   color: #9ca3af;
 }
 
