@@ -34,7 +34,9 @@ export function formatGregorianAsShamsiCompact(iso: string | null | undefined): 
   const normalized = iso.trim().slice(0, 10);
   try {
     const j = Jalali.gregorian(normalized);
-    return `${j.getMonth()}/${j.getDate()}`;
+    const month = String(j.getMonth() + 1).padStart(2, '0');
+    const day = String(j.getDate()).padStart(2, '0');
+    return `${month}/${day}`;
   } catch {
     return '';
   }
