@@ -27,3 +27,15 @@ export function formatGregorianAsShamsi(iso: string | null | undefined): string 
   const shamsi = gregorianIsoToShamsi(iso);
   return shamsi || '—';
 }
+
+/** Compact Shamsi display (M/D) for sprint sidebars, e.g. 9/15. */
+export function formatGregorianAsShamsiCompact(iso: string | null | undefined): string {
+  if (!iso?.trim()) return '';
+  const normalized = iso.trim().slice(0, 10);
+  try {
+    const j = Jalali.gregorian(normalized);
+    return `${j.getMonth()}/${j.getDate()}`;
+  } catch {
+    return '';
+  }
+}

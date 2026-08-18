@@ -4,9 +4,18 @@ import { NgClass } from '@angular/common';
 import { filter } from 'rxjs';
 import { ProjectService } from '../services/project-service';
 import { SprintService } from '../services/sprint-service';
+import { TaskService } from '../services/task-service';
 import { ProfileMenu } from '../profile-menu/profile-menu';
 import { getProjectIconStyle } from '../utils/project-icon.util';
+import {
+  formatSprintLabel,
+  getNextSprintName,
+  getSprintStatus,
+  sortSprintsByStartDate,
+  type SprintStatus,
+} from '../utils/sprint.util';
 import type { Project } from '../model/project';
+import type { Sprint } from '../model/sprint';
 
 @Component({
   selector: 'app-project-sidebar',
@@ -24,6 +33,7 @@ export class ProjectSidebar implements OnInit {
   constructor(
     protected readonly projectService: ProjectService,
     protected readonly sprintService: SprintService,
+    protected readonly taskService: TaskService,
     private readonly router: Router,
   ) {}
 
@@ -67,7 +77,9 @@ export class ProjectSidebar implements OnInit {
     if (url.includes('/sprint/') || url.includes('/sprint/form')) {
       this.expandedSprintsFolders.update((set) => new Set(set).add(projectId));
       if (!this.sprintService.sprintsForProject(projectId).length) {
-        this.sprintService.loadSprints(projectId).subscribe();
+        this.sprintService.loadSprints(projectId).subscribe(() => this.ensureProjectTasksLoaded(projectId));
+      } else {
+        this.ensureProjectTasksLoaded(projectId);
       }
     }
   }
@@ -116,7 +128,9 @@ export class ProjectSidebar implements OnInit {
 
     this.expandedProjects.update((set) => new Set(set).add(projectId));
     if (!this.sprintService.sprintsForProject(projectId).length && !this.sprintService.isLoading(projectId)) {
-      this.sprintService.loadSprints(projectId).subscribe();
+      this.sprintService.loadSprints(projectId).subscribe(() => this.ensureProjectTasksLoaded(projectId));
+    } else {
+      this.ensureProjectTasksLoaded(projectId);
     }
   }
 
@@ -133,14 +147,47 @@ export class ProjectSidebar implements OnInit {
       });
     } else {
       this.expandedSprintsFolders.update((set) => new Set(set).add(projectId));
-      if (!this.sprintService.sprintsForProject(projectId).length) {
-        this.sprintService.loadSprints(projectId).subscribe();
-      }
+      this.ensureSprintsLoaded(projectId);
     }
   }
 
-  sprintsFor(projectId: number) {
-    return this.sprintService.sprintsForProject(projectId);
+  suggestedSprintName(projectId: number): string {
+    return getNextSprintName(this.sprintService.sprintsForProject(projectId));
+  }
+
+  /** Keeps sprint badges reactive to task cache updates. */
+  readonly taskCacheVersion = computed(() => this.taskService.tasksByProject());
+
+  sprintsFor(projectId: number): Sprint[] {
+    return sortSprintsByStartDate(this.sprintService.sprintsForProject(projectId));
+  }
+
+  sprintStatus(sprint: Sprint): SprintStatus {
+    return getSprintStatus(sprint);
+  }
+
+  sprintLabel(sprint: Sprint): string {
+    return formatSprintLabel(sprint);
+  }
+
+  openTaskBadgeCount(projectId: number, sprint: Sprint): number | null {
+    this.taskCacheVersion();
+    if (getSprintStatus(sprint) !== 'completed') return null;
+    const count = this.taskService.openTaskCountForSprint(projectId, sprint.id);
+    return count > 0 ? count : null;
+  }
+
+  private ensureProjectTasksLoaded(projectId: number): void {
+    if (this.taskService.tasksForProject(projectId).length > 0) return;
+    this.taskService.loadProjectTasksCache(projectId).subscribe();
+  }
+
+  private ensureSprintsLoaded(projectId: number): void {
+    if (!this.sprintService.sprintsForProject(projectId).length && !this.sprintService.isLoading(projectId)) {
+      this.sprintService.loadSprints(projectId).subscribe(() => this.ensureProjectTasksLoaded(projectId));
+      return;
+    }
+    this.ensureProjectTasksLoaded(projectId);
   }
 
   onProjectRowClick(project: Project): void {

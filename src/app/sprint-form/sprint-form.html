@@ -18,14 +18,24 @@
         <label for="sprint-title" class="mb-1 block text-sm font-medium text-slate-700">
           Sprint title
         </label>
-        <input
-          id="sprint-title"
-          type="text"
-          formControlName="title"
-          placeholder="e.g. Sprint 1"
-          class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 placeholder-slate-400 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-          autofocus
-        />
+        @if (isEditMode()) {
+          <input
+            id="sprint-title"
+            type="text"
+            formControlName="title"
+            class="w-full rounded-xl border border-slate-300 px-4 py-3 text-slate-900 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+        } @else {
+          <input
+            id="sprint-title"
+            type="text"
+            formControlName="title"
+            placeholder="Sprint 1"
+            readonly
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-700 shadow-sm"
+          />
+          <p class="mt-1 text-xs text-slate-500">Name is assigned automatically.</p>
+        }
       </div>
 
       <div class="grid gap-4 sm:grid-cols-2">

@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angula
 import { SprintService } from '../services/sprint-service';
 import { ProjectService } from '../services/project-service';
 import { PersianDateInputComponent } from '../persian-date-input/persian-date-input';
+import { getNextSprintName } from '../utils/sprint.util';
 
 @Component({
   selector: 'app-sprint-form',
@@ -41,7 +42,24 @@ export class SprintForm implements OnInit {
 
     const qp = this.route.snapshot.queryParamMap.get('projectId');
     const projectId = qp ? parseInt(qp, 10) : NaN;
-    if (!Number.isNaN(projectId)) this.projectNumericId = projectId;
+    if (!Number.isNaN(projectId)) {
+      this.projectNumericId = projectId;
+      this.applySuggestedSprintName(projectId);
+    }
+  }
+
+  private applySuggestedSprintName(projectId: number): void {
+    const cached = this.sprintService.sprintsForProject(projectId);
+    if (cached.length > 0) {
+      this.sprintForm.patchValue({ title: getNextSprintName(cached) });
+      return;
+    }
+
+    this.sprintService.loadSprints(projectId).subscribe((sprints) => {
+      if (!this.isEditMode()) {
+        this.sprintForm.patchValue({ title: getNextSprintName(sprints) });
+      }
+    });
   }
 
   private initForm(): void {

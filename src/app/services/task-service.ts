@@ -19,12 +19,14 @@ function parseTaskId(id: string): number | null {
 })
 export class TaskService {
   private readonly tasksSignal = signal<Task[]>([]);
+  private readonly tasksByProjectSignal = signal<Record<number, Task[]>>({});
   private readonly loadingSignal = signal(false);
   private readonly errorSignal = signal<string | null>(null);
 
   constructor(private readonly http: HttpClient) {}
 
   readonly tasks = this.tasksSignal.asReadonly();
+  readonly tasksByProject = this.tasksByProjectSignal.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
   readonly error = this.errorSignal.asReadonly();
 
@@ -74,9 +76,70 @@ export class TaskService {
         }),
         tap((tasks) => {
           this.tasksSignal.set(tasks);
+          this.tasksByProjectSignal.update((map) => ({ ...map, [projectId]: tasks }));
           this.errorSignal.set(null);
         }),
       );
+  }
+
+  /** Loads tasks into the per-project cache without replacing the active task list. */
+  loadProjectTasksCache(projectId: number): Observable<Task[]> {
+    return this.http
+      .get<TaskApiResponse[] | TaskApiResponse>(`${TASK_BASE}/GetAllTasksByProjectId`, {
+        params: { projectId },
+      })
+      .pipe(
+        catchError(() => of([])),
+        map((body) => {
+          const list = Array.isArray(body) ? body : body ? [body as TaskApiResponse] : [];
+          return list.map(apiToTask);
+        }),
+        tap((tasks) => {
+          this.tasksByProjectSignal.update((map) => ({ ...map, [projectId]: tasks }));
+        }),
+      );
+  }
+
+  tasksForProject(projectId: number): Task[] {
+    return this.tasksByProjectSignal()[projectId] ?? [];
+  }
+
+  openTaskCountForSprint(projectId: number, sprintId: number): number {
+    return this.tasksForProject(projectId).filter(
+      (t) => t.sprintId === sprintId && t.status !== 'Done',
+    ).length;
+  }
+
+  private syncProjectTaskCache(tasks: Task[]): void {
+    const byProject: Record<number, Task[]> = { ...this.tasksByProjectSignal() };
+    for (const task of tasks) {
+      if (task.projectId === undefined) continue;
+      const pid = task.projectId;
+      const list = byProject[pid] ?? [];
+      const idx = list.findIndex((t) => t.id === task.id);
+      if (idx >= 0) list[idx] = task;
+      else list.push(task);
+      byProject[pid] = list;
+    }
+    this.tasksByProjectSignal.set(byProject);
+  }
+
+  private removeFromProjectTaskCache(taskId: string, projectId?: number): void {
+    if (projectId === undefined) {
+      this.tasksByProjectSignal.update((map) => {
+        const next = { ...map };
+        for (const pid of Object.keys(next)) {
+          next[Number(pid)] = next[Number(pid)].filter((t) => t.id !== taskId);
+        }
+        return next;
+      });
+      return;
+    }
+
+    this.tasksByProjectSignal.update((map) => ({
+      ...map,
+      [projectId]: (map[projectId] ?? []).filter((t) => t.id !== taskId),
+    }));
   }
 
   getTask(id: string): Task | undefined {
@@ -104,7 +167,11 @@ export class TaskService {
 
     const dto: CreateTaskDto = toCreateDto(params, title);
     return this.http.post<TaskApiResponse>(`${TASK_BASE}/CreateNewTask`, dto).pipe(
-      tap((created) => this.tasksSignal.update((list) => [...list, apiToTask(created)])),
+      tap((created) => {
+        const task = apiToTask(created);
+        this.tasksSignal.update((list) => [...list, task]);
+        this.syncProjectTaskCache([task]);
+      }),
       map(apiToTask),
       catchError(() => of(null)),
     );
@@ -122,25 +189,27 @@ export class TaskService {
     const now = Date.now();
 
     return this.http.put<unknown>(`${TASK_BASE}/UpdateTaskById`, dto).pipe(
-      tap(() =>
+      tap(() => {
+        let updatedTask: Task | undefined;
         this.tasksSignal.update((list) =>
-          list.map((t) =>
-            t.id === id
-              ? {
-                  ...t,
-                  ...(input.title !== undefined && { title: input.title.trim() }),
-                  ...(input.description !== undefined && {
-                    description: input.description,
-                  }),
-                  ...(input.priority !== undefined && { priority: input.priority }),
-                  ...(input.status !== undefined && { status: input.status }),
-                  ...(input.projectId !== undefined && { projectId: input.projectId }),
-                  updatedAt: now,
-                }
-              : t,
-          ),
-        ),
-      ),
+          list.map((t) => {
+            if (t.id !== id) return t;
+            updatedTask = {
+              ...t,
+              ...(input.title !== undefined && { title: input.title.trim() }),
+              ...(input.description !== undefined && {
+                description: input.description,
+              }),
+              ...(input.priority !== undefined && { priority: input.priority }),
+              ...(input.status !== undefined && { status: input.status }),
+              ...(input.projectId !== undefined && { projectId: input.projectId }),
+              updatedAt: now,
+            };
+            return updatedTask;
+          }),
+        );
+        if (updatedTask) this.syncProjectTaskCache([updatedTask]);
+      }),
       map(() => true),
       catchError(() => of(false)),
     );
@@ -165,7 +234,11 @@ export class TaskService {
         params: { id: numId },
       })
       .pipe(
-        tap(() => this.tasksSignal.update((list) => list.filter((t) => t.id !== id))),
+        tap(() => {
+          const existing = this.getTask(id);
+          this.tasksSignal.update((list) => list.filter((t) => t.id !== id));
+          this.removeFromProjectTaskCache(id, existing?.projectId);
+        }),
         map(() => true),
         catchError(() => of(false)),
       );

@@ -155,9 +155,20 @@
                   @if (sprintService.isLoading(project.id)) {
                     <p class="sidebar-status sidebar-status--nested">Loading sprints...</p>
                   } @else if (sprintsFor(project.id).length === 0) {
-                    <p class="sidebar-status sidebar-status--nested">No sprints</p>
+                    <a
+                      [routerLink]="['/sprint/form']"
+                      [queryParams]="{ projectId: project.id }"
+                      class="create-sprint-btn create-sprint-btn--solo"
+                    >
+                      <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      Create Sprint
+                    </a>
                   } @else {
                     @for (sprint of sprintsFor(project.id); track sprint.id) {
+                      @let status = sprintStatus(sprint);
+                      @let badge = openTaskBadgeCount(project.id, sprint);
                       <div
                         class="sprint-row"
                         (mouseenter)="hoveredSprintKey.set(sprintRowKey(project.id, sprint.id))"
@@ -167,9 +178,25 @@
                           [routerLink]="['/project', project.id, 'sprint', sprint.id]"
                           routerLinkActive="tree-item--active"
                           class="tree-item tree-item--sprint"
+                          [class.tree-item--sprint-not-started]="status === 'not-started'"
                         >
-                          <span class="sprint-dot"></span>
-                          <span class="sprint-title">{{ sprint.title }}</span>
+                          <span
+                            class="sprint-status-icon"
+                            [class.sprint-status-icon--completed]="status === 'completed'"
+                            [class.sprint-status-icon--in-progress]="status === 'in-progress'"
+                            [class.sprint-status-icon--not-started]="status === 'not-started'"
+                            aria-hidden="true"
+                          >
+                            <svg viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M6.5 4.5v7l5.5-3.5-5.5-3.5z" />
+                            </svg>
+                          </span>
+                          <span class="sprint-title">{{ sprintLabel(sprint) }}</span>
+                          @if (badge !== null) {
+                            <span class="sprint-task-badge" [attr.aria-label]="badge + ' open tasks'">
+                              {{ badge }}
+                            </span>
+                          }
                         </a>
                         @if (hoveredSprintKey() === sprintRowKey(project.id, sprint.id)) {
                           <div class="sprint-actions">
@@ -207,6 +234,16 @@
                         }
                       </div>
                     }
+                    <a
+                      [routerLink]="['/sprint/form']"
+                      [queryParams]="{ projectId: project.id }"
+                      class="create-sprint-btn"
+                    >
+                      <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      Create Sprint
+                    </a>
                   }
                 </div>
               }
