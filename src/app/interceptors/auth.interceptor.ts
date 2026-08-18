@@ -21,6 +21,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   let requestToSend = req;
 
   if (token) {
+    //req.clone(): create a new request with the same properties as the original request, but with the added headers
     requestToSend = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`,
@@ -33,7 +34,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       const isUnauthorized = (error as HttpErrorResponse)?.status === 401;
       const refreshToken = auth.currentUser()?.refreshToken;
       const url = req.url.toLowerCase();
-      const isAuthEndpoint = url.endsWith('/account/login') || url.endsWith('/account/refresh-token');
+      const isAuthEndpoint =
+        url.endsWith('/account/login') || url.endsWith('/account/refresh-token');
 
       if (!isUnauthorized || !refreshToken || isAuthEndpoint) {
         return throwError(() => error);
@@ -42,7 +44,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (!refreshRequest$) {
         refreshRequest$ = userService.refreshToken(refreshToken).pipe(
           tap((response) => {
-            if (response.statusCode !== 200 || !response.result?.token || !response.result?.refreshToken) {
+            if (
+              response.statusCode !== 200 ||
+              !response.result?.token ||
+              !response.result?.refreshToken
+            ) {
               throw new Error('Refresh token request failed.');
             }
             auth.setUser(response.result);
@@ -54,7 +60,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           finalize(() => {
             refreshRequest$ = null;
           }),
-          shareReplay(1)
+          shareReplay(1),
         );
       }
 
@@ -69,10 +75,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
               setHeaders: {
                 Authorization: `Bearer ${renewedToken}`,
               },
-            })
+            }),
           );
-        })
+        }),
       );
-    })
+    }),
   );
 };
+
+//interceptor: like middlewares in .net

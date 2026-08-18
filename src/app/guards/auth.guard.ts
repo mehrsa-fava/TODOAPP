@@ -11,3 +11,5 @@ export const authGuard: CanActivateFn = () => {
   router.navigate(['/login']);
   return false;
 };
+
+//guard: protect routes based on service logic
