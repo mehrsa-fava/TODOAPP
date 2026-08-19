@@ -8,25 +8,17 @@
         <h1 class="task-panel-title">{{ viewTitle() }}</h1>
         <p class="task-panel-subtitle">{{ viewSubtitle() }}</p>
       </div>
-      @if (activeSprint() && projectId() !== null) {
-        <a
-          [routerLink]="['/sprint/form', activeSprint()!.id]"
-          [queryParams]="{ projectId: projectId()! }"
-          class="task-panel-edit-sprint"
-        >
-          Edit sprint
-        </a>
-      }
     </header>
 
     <div class="task-panel-actions">
-      <a
-        [routerLink]="['/task/form']"
-        [queryParams]="addTaskQueryParams()"
-        class="btn-primary"
-      >
+      <a [routerLink]="['/task/form']" [queryParams]="addTaskQueryParams()" class="btn-primary">
         <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 4v16m8-8H4"
+          />
         </svg>
         Add task
       </a>
